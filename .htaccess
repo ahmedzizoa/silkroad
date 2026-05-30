@@ -1,0 +1,37 @@
+# تفعيل HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# منع الوصول للمجلدات الحساسة
+RedirectMatch 403 ^/config/.*$
+RedirectMatch 403 ^/includes/.*$
+RedirectMatch 403 ^/languages/.*$
+RedirectMatch 403 ^/logs/.*$
+
+# منع عرض محتويات المجلدات
+Options -Indexes
+
+# حماية ملفات التكوين
+<FilesMatch "\.(ini|log|config)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# منع بعض الـ User Agents الضارة
+RewriteCond %{HTTP_USER_AGENT} (havij|libwww-perl|wget|curl|python|nikto|wikto|scan) [NC]
+RewriteRule .* - [F,L]
+
+# زيادة الأمان للـ Session Cookies
+php_value session.cookie_httponly 1
+php_value session.cookie_secure 1
+php_value session.use_strict_mode 1
+php_value session.cookie_samesite "Strict"
+
+# إعدادات الأمان في الهيدر
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
